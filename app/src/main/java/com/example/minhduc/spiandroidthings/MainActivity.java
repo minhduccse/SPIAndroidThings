@@ -43,7 +43,12 @@ public class MainActivity extends Activity {
     private TextView mTagDetectedView;
     private TextView mTagUidView;
     private TextView mTagResultsView;
-    private Button button;
+    private TextView mStatus;
+
+    private Button button_write;
+    private Button button_read;
+    private Button button_stop;
+
     private SpiDevice spiDevice;
     private Gpio gpioReset;
 
@@ -55,13 +60,22 @@ public class MainActivity extends Activity {
         mTagDetectedView = (TextView) findViewById(R.id.tag_read);
         mTagUidView = (TextView) findViewById(R.id.tag_uid);
         mTagResultsView = (TextView) findViewById(R.id.tag_results);
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        mStatus = (TextView) findViewById(R.id.status);
+
+        button_write = (Button) findViewById(R.id.button_write);
+        button_read = (Button) findViewById(R.id.button_read);
+        button_stop = (Button) findViewById(R.id.button_stop);
+
+        mStatus.setVisibility(View.VISIBLE);
+
+        button_write.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mRfidTask = new RfidTask(mRc522);
                 mRfidTask.execute();
-                ((Button) v).setText(R.string.reading);
+//                ((Button) v).setText(R.string.waiting);
+                button_read.setEnabled(false);
+                mStatus.setText(R.string.waiting);
             }
         });
         PeripheralManager pioService = PeripheralManager.getInstance();
@@ -101,7 +115,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPreExecute() {
-            button.setEnabled(false);
+            button_write.setEnabled(false);
             mTagResultsView.setVisibility(View.GONE);
             mTagDetectedView.setVisibility(View.GONE);
             mTagUidView.setVisibility(View.GONE);
@@ -168,9 +182,11 @@ public class MainActivity extends Activity {
                 resultsText += "\nSector read successfully: " + Rc522.dataToHexString(buffer);
                 rc522.stopCrypto();
                 mTagResultsView.setText(resultsText);
+                mStatus.setText(R.string.success);
             } finally {
-                button.setEnabled(true);
-                button.setText(R.string.start);
+                button_write.setEnabled(true);
+                button_read.setEnabled(true);
+//                button_write.setText(R.string.write);
                 mTagUidView.setText(getString(R.string.tag_uid, rc522.getUidString()));
                 mTagResultsView.setVisibility(View.VISIBLE);
                 mTagDetectedView.setVisibility(View.VISIBLE);

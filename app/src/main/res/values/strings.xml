@@ -1,7 +1,16 @@
 <resources>
     <string name="app_name">SPIAndroidThings</string>
-    <string name="start">Start</string>
+    <string name="write">Write</string>
+    <string name="read">Read</string>
+    <string name="stop">Stop</string>
+    <string name="start_write">Start Write</string>
+    <string name="start_read">Start Read</string>
+    <string name="stop_read">Stop Read</string>
+    <string name="writing">Writing</string>
     <string name="reading">Reading</string>
+    <string name="waiting">Waiting</string>
+    <string name="waiting_cmd">Waiting Command</string>
+    <string name="success">Success</string>
     <string name="tag_detected">Tag detected:</string>
     <string name="tag_uid">UID: %1$s</string>
     <string name="authetication_error">Couldn\'t authenticate for sector.</string>
