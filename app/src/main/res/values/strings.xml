@@ -11,6 +11,7 @@
     <string name="waiting">Waiting</string>
     <string name="waiting_cmd">Waiting Command</string>
     <string name="success">Success</string>
+    <string name="fail">Failed</string>
     <string name="tag_detected">Tag detected:</string>
     <string name="tag_uid">UID: %1$s</string>
     <string name="authetication_error">Couldn\'t authenticate for sector.</string>
