@@ -183,9 +183,9 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            byte address_name = Rc522.getBlockAddress(2, 1);
-            byte address_dob = Rc522.getBlockAddress(2, 2);
-            byte address_id = Rc522.getBlockAddress(2, 3);
+            byte address_name = Rc522.getBlockAddress(15, 0);
+            byte address_dob = Rc522.getBlockAddress(15, 1);
+            byte address_id = Rc522.getBlockAddress(15, 2);
 
             writeToRFID("Tran Minh Duc", "08/06/1998", "1610800", address_name, address_dob, address_id);
 
@@ -241,13 +241,11 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            byte address_name = Rc522.getBlockAddress(2, 1);
-            byte address_dob = Rc522.getBlockAddress(2, 2);
-            byte address_id = Rc522.getBlockAddress(2, 3);
+            byte address_name = Rc522.getBlockAddress(15, 0);
+            byte address_dob = Rc522.getBlockAddress(15, 1);
+            byte address_id = Rc522.getBlockAddress(15, 2);
 
-            readFromRFID(address_name);
-//            readFromRFID(address_dob);
-//            readFromRFID(address_id);
+            readFromRFID(address_name, address_dob, address_id);
 
         }
     }
@@ -328,25 +326,56 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void readFromRFID(byte Block){
+    private void readFromRFID(byte BlockName, byte BlockDOB, byte BlockID){
 
         try {
             byte[] key = {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
 
-            boolean result = mRc522.authenticateCard(Rc522.AUTH_A, Block, key);
+            boolean result = mRc522.authenticateCard(Rc522.AUTH_A, BlockName, key);
             if (!result) {
                 mTagResultsView.setText(R.string.authetication_error);
                 mStatus.setText(R.string.fail);
                 return;
             }
-            byte[] buffer = new byte[16];
+            result = mRc522.authenticateCard(Rc522.AUTH_A, BlockDOB, key);
+            if (!result) {
+                mTagResultsView.setText(R.string.authetication_error);
+                mStatus.setText(R.string.fail);
+                return;
+            }
+            result = mRc522.authenticateCard(Rc522.AUTH_A, BlockID, key);
+            if (!result) {
+                mTagResultsView.setText(R.string.authetication_error);
+                mStatus.setText(R.string.fail);
+                return;
+            }
 
-            result = mRc522.readBlock(Block, buffer);
+            byte[] bufferName = new byte[16];
+            result = mRc522.readBlock(BlockName, bufferName);
             if (!result) {
                 mTagResultsView.setText(R.string.read_error);
                 return;
             }
-            resultsText += "Sector read successfully: " + buffer.toString();
+            String ResultName = new String(bufferName);
+            resultsText += "Name: " + "\t\t\t\t\t\t" + ResultName;
+
+            byte[] bufferDOB = new byte[16];
+            result = mRc522.readBlock(BlockDOB, bufferDOB);
+            if (!result) {
+                mTagResultsView.setText(R.string.read_error);
+                return;
+            }
+            String ResultDOB = new String(bufferDOB);
+            resultsText += "\nDate of birth: " + "\t\t" + ResultDOB;
+
+            byte[] bufferID = new byte[16];
+            result = mRc522.readBlock(BlockID, bufferID);
+            if (!result) {
+                mTagResultsView.setText(R.string.read_error);
+                return;
+            }
+            String ResultID = new String(bufferID);
+            resultsText += "\nID: " + "\t\t\t\t\t\t\t\t\t" + ResultID;
 
             mRc522.stopCrypto();
             mTagResultsView.setText(resultsText);
