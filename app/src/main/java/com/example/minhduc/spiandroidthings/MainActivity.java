@@ -3,11 +3,11 @@ package com.example.minhduc.spiandroidthings;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.galarzaa.androidthings.Rc522;
 import com.google.android.things.pio.Gpio;
@@ -25,11 +25,19 @@ public class MainActivity extends Activity {
 
     private static final String TAG_GLOB = "RFID";
 
+    private String[] memberIDList = {"1610800", "1612939", "1612483", "1613786"};
+    private int ledState = 2;
+    private int blinkCounter = 0;
+
+    boolean isFound = false;
+
     RfidWriteTask mRfidWriteTask;
     RfidReadTask mRfidReadTask;
     String resultsText = "";
 
     private Rc522 mRc522;
+
+    private Handler mHandler = new Handler();
 
     private TextView mTagDetectedView;
     private TextView mTagUidView;
@@ -81,6 +89,14 @@ public class MainActivity extends Activity {
             }
         });
 
+        button_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mRfidReadTask != null) mRfidReadTask.cancel(true);
+                if(mRfidWriteTask != null) mRfidWriteTask.cancel(true);
+            }
+        });
+
         PeripheralManager pioService = PeripheralManager.getInstance();
         try {
             spiDevice = pioService.openSpiDevice(SPI_PORT);
@@ -102,6 +118,8 @@ public class MainActivity extends Activity {
         } catch (IOException e) {
             Log.e(TAG_GLOB, "Error on opening GPIO ports.");
         }
+
+        mHandler.post(mLedBlink);
     }
 
     @Override
@@ -134,6 +152,58 @@ public class MainActivity extends Activity {
         }
     }
 
+    private Runnable mLedBlink = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                switch (ledState) {
+                    case 0:
+                        mLedGpioRed.setValue(false);
+                        mLedGpioGreen.setValue(true);
+                        mLedGpioBlue.setValue(false);
+                        ledState = 2;
+                        break;
+                    case 1:
+                        if (blinkCounter < 6) {
+                            mLedGpioRed.setValue(true);
+                            mLedGpioGreen.setValue(false);
+                            mLedGpioBlue.setValue(false);
+                            blinkCounter++;
+                            ledState = 3;
+                        }
+                        else {
+                            ledState = 2;
+                            blinkCounter = 0;
+                        }
+                        break;
+                    case 2:
+                        mLedGpioRed.setValue(false);
+                        mLedGpioGreen.setValue(false);
+                        mLedGpioBlue.setValue(true);
+                        break;
+                    case 3:
+                        mLedGpioRed.setValue(false);
+                        mLedGpioGreen.setValue(false);
+                        mLedGpioBlue.setValue(false);
+                        ledState = 1;
+                        break;
+                    case 4:
+                        mLedGpioRed.setValue(true);
+                        mLedGpioGreen.setValue(false);
+                        mLedGpioBlue.setValue(false);
+                        ledState = 2;
+                        break;
+                    default:
+                        ledState = 2;
+                        break;
+                }
+            } catch (Exception e) {
+                Log.w(TAG_GLOB, "Display LED error");
+            }
+            mHandler.postDelayed(this, 100);
+        }
+    };
+
     private class RfidWriteTask extends AsyncTask<Object, Object, Boolean> {
         private static final String TAG = "RfidWriteTask";
         private Rc522 rc522;
@@ -156,6 +226,9 @@ public class MainActivity extends Activity {
         protected Boolean doInBackground(Object... params) {
             rc522.stopCrypto();
             while (true) {
+                if(isCancelled()){
+                    break;
+                }
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -173,6 +246,7 @@ public class MainActivity extends Activity {
                 byte[] uuid = rc522.getUid();
                 return rc522.selectTag(uuid);
             }
+            return null;
         }
 
         @Override
@@ -214,6 +288,9 @@ public class MainActivity extends Activity {
         protected Boolean doInBackground(Object... params) {
             rc522.stopCrypto();
             while (true) {
+                if(isCancelled()){
+                    break;
+                }
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -231,6 +308,7 @@ public class MainActivity extends Activity {
                 byte[] uuid = rc522.getUid();
                 return rc522.selectTag(uuid);
             }
+            return null;
         }
 
         @Override
@@ -350,6 +428,8 @@ public class MainActivity extends Activity {
                 return;
             }
 
+            isFound = true;
+
             byte[] bufferName = new byte[16];
             result = mRc522.readBlock(BlockName, bufferName);
             if (!result) {
@@ -378,6 +458,20 @@ public class MainActivity extends Activity {
             resultsText += "\nID: " + "\t\t\t\t\t\t\t\t\t" + ResultID;
 
             mRc522.stopCrypto();
+
+            if (isFound) {
+                for (int i = 0; i < 4; i++) {
+                    if (ResultID.equals(memberIDList[i])) {
+                        ledState = 0;
+                        isFound = false;
+                        break;
+                    }
+                    ledState = 4;
+                    blinkCounter = 0;
+                }
+                isFound = false;
+            };
+
             mTagResultsView.setText(resultsText);
             mStatus.setText(R.string.success);
         } finally {
@@ -388,6 +482,8 @@ public class MainActivity extends Activity {
             mTagResultsView.setVisibility(View.VISIBLE);
             mTagDetectedView.setVisibility(View.VISIBLE);
             mTagUidView.setVisibility(View.VISIBLE);
+
+            mRfidReadTask.execute();
         }
     }
 }
