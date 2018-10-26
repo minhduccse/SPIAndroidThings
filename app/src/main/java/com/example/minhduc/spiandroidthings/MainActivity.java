@@ -25,7 +25,10 @@ public class MainActivity extends Activity {
 
     private static final String TAG_GLOB = "RFID";
 
-    private String[] memberIDList = {"1610800", "1612939", "1612483", "1613786"};
+    private static final String Url = "http://demo1.chipfc.com/SensorValue/update?sensorid=7&sensorvalue=";
+
+    private String[] memberIDList = {"1610800         ", "1612939         ", "1612483         ", "1613786         "};
+
     private int ledState = 2;
     private int blinkCounter = 0;
 
@@ -34,6 +37,8 @@ public class MainActivity extends Activity {
     RfidWriteTask mRfidWriteTask;
     RfidReadTask mRfidReadTask;
     String resultsText = "";
+
+
 
     private Rc522 mRc522;
 
@@ -94,6 +99,8 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 if(mRfidReadTask != null) mRfidReadTask.cancel(true);
                 if(mRfidWriteTask != null) mRfidWriteTask.cancel(true);
+                button_write.setEnabled(true);
+                button_read.setEnabled(true);
             }
         });
 
@@ -110,8 +117,8 @@ public class MainActivity extends Activity {
             mLedGpioBlue.setDirection(Gpio.DIRECTION_OUT_INITIALLY_HIGH);
 
             mLedGpioRed.setActiveType(Gpio.ACTIVE_LOW);
-            mLedGpioGreen.setDirection(Gpio.ACTIVE_LOW);
-            mLedGpioBlue.setDirection(Gpio.ACTIVE_LOW);
+            mLedGpioGreen.setActiveType(Gpio.ACTIVE_LOW);
+            mLedGpioBlue.setActiveType(Gpio.ACTIVE_LOW);
 
             mRc522 = new Rc522(spiDevice, gpioReset);
             mRc522.setDebugging(true);
@@ -187,12 +194,6 @@ public class MainActivity extends Activity {
                         mLedGpioBlue.setValue(false);
                         ledState = 1;
                         break;
-                    case 4:
-                        mLedGpioRed.setValue(true);
-                        mLedGpioGreen.setValue(false);
-                        mLedGpioBlue.setValue(false);
-                        ledState = 2;
-                        break;
                     default:
                         ledState = 2;
                         break;
@@ -251,6 +252,9 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(Boolean success) {
+            if(isCancelled()){
+                return;
+            }
             if (!success) {
                 mTagResultsView.setText(R.string.unknown_error);
                 mStatus.setText(R.string.fail);
@@ -313,6 +317,9 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(Boolean success) {
+            if(isCancelled()){
+                return;
+            }
             if (!success) {
                 mTagResultsView.setText(R.string.unknown_error);
                 mStatus.setText(R.string.fail);
@@ -324,7 +331,6 @@ public class MainActivity extends Activity {
             byte address_id = Rc522.getBlockAddress(15, 2);
 
             readFromRFID(address_name, address_dob, address_id);
-
         }
     }
 
@@ -466,13 +472,17 @@ public class MainActivity extends Activity {
                         isFound = false;
                         break;
                     }
-                    ledState = 4;
                     blinkCounter = 0;
                 }
+                if(isFound) ledState = 1;
                 isFound = false;
-            };
+                Log.i(TAG_GLOB, "/" + ResultID + "/");
+            }
 
             mTagResultsView.setText(resultsText);
+
+
+
             mStatus.setText(R.string.success);
         } finally {
             button_write.setEnabled(true);
@@ -482,8 +492,6 @@ public class MainActivity extends Activity {
             mTagResultsView.setVisibility(View.VISIBLE);
             mTagDetectedView.setVisibility(View.VISIBLE);
             mTagUidView.setVisibility(View.VISIBLE);
-
-            mRfidReadTask.execute();
         }
     }
 }
