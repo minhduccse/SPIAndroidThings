@@ -9,6 +9,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.galarzaa.androidthings.Rc522;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManager;
@@ -481,7 +487,7 @@ public class MainActivity extends Activity {
 
             mTagResultsView.setText(resultsText);
 
-
+            mGetRequest(ResultID);
 
             mStatus.setText(R.string.success);
         } finally {
@@ -493,5 +499,24 @@ public class MainActivity extends Activity {
             mTagDetectedView.setVisibility(View.VISIBLE);
             mTagUidView.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void mGetRequest(String ID) {
+        String url = "http://demo1.chipfc.com/SensorValue/update?sensorid=7&sensorvalue=";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, Url+ID,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        Log.i(TAG_GLOB, "The response is: " + response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG_GLOB, "Error upon sending request!");
+            }
+        });
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(stringRequest);
     }
 }
