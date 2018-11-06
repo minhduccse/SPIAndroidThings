@@ -22,7 +22,7 @@ on a screen.
 
 ## Usage
 
-+ Press Write Button to start writing data to RFID card. Name, ID, DOB will be displayed on screen.
++ Press Write Button to start writing data to RFID card. Name, ID, DOB will be written on RFID card.
 + Press Read Button to start reading data from RFID card. Name, ID, DOB will be displayed on screen. The RGB LED will blink with rule:
 	+ The green LED of RGB LED is on when the card of one of group members is presented.
     + The red LED of RGB LED flashes 5 times in 2 seconds when the other cards are presented.
