@@ -18,7 +18,6 @@ on a screen.
 | LED BLUE       |  BCM4|
 | SPI_PORT       |  SPI0.0|
 | PIN_RESET      |  BCM25|
-| TAG_GLOB         |  RFID|
 
 
 ## Usage
