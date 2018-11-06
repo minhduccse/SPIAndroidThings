@@ -28,6 +28,7 @@ on a screen.
 	+ The green LED of RGB LED is on when the card of one of group members is presented.
     + The red LED of RGB LED flashes 5 times in 2 seconds when the other cards are presented.
     + By default, the blue LED of RGB LED is on, and only one LED is turned on at a time.
+	+ ID in the RFID card will be send to http://demo1.chipfc.com/SensorValue/List/7 after read
 + Press Stop Button to stop writing or reading.
 
 ## MEMBERS
